@@ -1,10 +1,10 @@
+import { asc, desc, eq, isNull, sql } from "drizzle-orm";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { db } from "@db";
-import { evidence, predictions, votes, users, markets, marketOddsHistory } from "@db/schema";
-import { eq, and, desc, sql, asc, isNull } from "drizzle-orm";
-import { setupAuth } from "./auth";
+import { db } from "../db/index.ts";
+import { evidence, marketOddsHistory, markets, predictions, users, votes } from "../db/schema.ts";
 import { calculateMarketOdds } from '../shared/utils';
+import { setupAuth } from "./auth";
 
 console.log('Do we get we get routes');
 

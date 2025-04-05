@@ -7,7 +7,7 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set");
 }
 
-const connectionString ='postgres://neondb_owner:npg_oMD6QV7Pgatm@ep-super-leaf-a44apuj1-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
+const connectionString = "postgres://neondb_owner:npg_oMD6QV7Pgatm@ep-super-leaf-a44apuj1-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require";
 
 // Create postgres client with native pg driver
 const client = postgres(connectionString, {

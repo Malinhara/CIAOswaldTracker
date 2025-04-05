@@ -1,9 +1,8 @@
-import express, { type Express } from "express";
-import { registerRoutes } from "./routes";
-import { Server } from "http";
-import path from "path";
 import "dotenv/config";
-import { db, testConnection } from "../db";  // Use relative path
+import express from "express";
+import path from "path";
+import { testConnection } from "../db"; // Use relative path
+import { registerRoutes } from "./routes";
 
 
 console.log('do we get to index.ts?');
@@ -13,10 +12,7 @@ app.use(express.json());
 
 // Add more detailed CORS settings
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  
+
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -97,4 +93,5 @@ app.use((req, res, next) => {
   });
 })();
 
-import { type Request, Response, NextFunction } from "express";
+import { NextFunction, type Request, Response } from "express";
+

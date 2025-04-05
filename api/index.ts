@@ -68,7 +68,7 @@ app.use((req, res, next) => {
   console.log(`Starting server in ${isProd ? "production" : "development"} mode`);
 
   if (!isProd) {
-    const { setupVite } = await import("./vite/index.js"); // TS → .js after build
+    const { setupVite } = await import("./vite.js"); // TS → .js after build
     await setupVite(app, server);
   } else {
     const __filename = fileURLToPath(import.meta.url);

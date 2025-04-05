@@ -2,15 +2,17 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "./dist/public",
+  "outputDirectory": "dist/public",
   "rewrites": [
     {
+ 
       "source": "/api/(.*)",
-      "destination": "/api/index"
+      "destination": "/api/index.js"
     },
-    { 
-      "source": "/(.*)", 
-      "destination": "/dist/public/index.html"
+    {
+
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

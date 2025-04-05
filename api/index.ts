@@ -1,86 +1,80 @@
+// src/api/index.ts
+
 import "dotenv/config";
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import path from "path";
-import { testConnection } from "../db"; // Use relative path
-import { registerRoutes } from "./routes";
+import { fileURLToPath } from "url";
+import { testConnection } from "../db/index.js"; // ✅ Use .js even for TS because compiled output is .js
+import { registerRoutes } from "./routes.js";
 
-
-console.log('do we get to index.ts?');
+console.log("do we get to index.ts?");
 
 const app = express();
 app.use(express.json());
 
-// Add more detailed CORS settings
+// Handle preflight (CORS)
 app.use((req, res, next) => {
-
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
   }
-  
   next();
 });
 
-// Request logging middleware
+// Request logger
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  const pathReq = req.path;
+  let capturedJsonResponse: any;
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
+  const originalJson = res.json.bind(res);
+  res.json = (body, ...args) => {
+    capturedJsonResponse = body;
+    return originalJson(body, ...args);
   };
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+    if (pathReq.startsWith("/api")) {
+      let log = `${req.method} ${pathReq} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        log += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-      console.log(logLine);
+      console.log(log);
     }
   });
 
   next();
 });
 
-// Initialize routes and server
 (async () => {
-  // Test database connection first
   try {
     await testConnection();
   } catch (error) {
-    console.error('Failed to connect to database:', error);
-    process.exit(1);  // Exit if database connection fails
+    console.error("Failed to connect to database:", error);
+    process.exit(1);
   }
 
   const server = registerRoutes(app);
 
+  // Global error handling
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-    console.error('Error details:', err);
+    console.error("Error details:", err);
     res.status(status).json({ message });
   });
 
-  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error('Server Error:', err);  // This will show in Vercel logs
-    res.status(500).json({ error: err.message });
-  });
+  const isProd = process.env.NODE_ENV === "production";
+  console.log(`Starting server in ${isProd ? "production" : "development"} mode`);
 
-  const isProduction = process.env.NODE_ENV === "production";
-  console.log(`Starting server in ${isProduction ? 'production' : 'development'} mode`);
-
-  // Only use Vite in development
-  if (process.env.NODE_ENV === "development") {
-    const { setupVite } = await import("./vite");
+  if (!isProd) {
+    const { setupVite } = await import("./vite/index.js"); // TS → .js after build
     await setupVite(app, server);
   } else {
-    // In production, serve static files
-    const distPath = path.resolve(process.cwd(), "dist/public");
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const distPath = path.resolve(__dirname, "../../dist/public");
+
     app.use(express.static(distPath));
     app.get("*", (_req, res) => {
       res.sendFile(path.resolve(distPath, "index.html"));
@@ -92,6 +86,3 @@ app.use((req, res, next) => {
     console.log(`Server running on port ${port}`);
   });
 })();
-
-import { NextFunction, type Request, Response } from "express";
-
